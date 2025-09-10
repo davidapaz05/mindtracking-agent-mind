@@ -1,6 +1,6 @@
 import express from 'express';
 import dotenv from 'dotenv';
-import chatRoutes from './routes/chatRoutes.js';
+import chatRoutes from './Routes/chatRoutes.js';
 
 dotenv.config({ path: './config/.env' });
 

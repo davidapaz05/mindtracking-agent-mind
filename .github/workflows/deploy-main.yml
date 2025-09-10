@@ -1,0 +1,63 @@
+name: Build and Deploy MindTracking Agent
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+
+      - name: Build Docker image
+        run: docker build -t mindtrack/mindtracking-agente:latest .
+
+      - name: Push Docker image
+        run: docker push mindtrack/mindtracking-agente:latest
+
+  deploy:
+    needs: build
+    runs-on: self-hosted
+    steps:
+      - name: Login to Docker Hub (deploy host)
+        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+
+      - name: Create Docker network (if not exists)
+        shell: bash
+        run: |
+          if ! docker network inspect mindtrack-net &> /dev/null; then
+            docker network create mindtrack-net;
+          fi
+
+      - name: Stop and remove old container (if running)
+        run: |
+          docker stop mindtracking-agent || true
+          docker rm mindtracking-agent || true
+
+      - name: Pull latest Agent image
+        run: docker pull mindtrack/mindtracking-agente:latest
+
+      - name: Run Agent container with secrets
+        shell: bash
+        run: |
+          set -euxo pipefail
+          IMAGE="mindtrack/mindtracking-agente:latest"
+          echo "Running image: ${IMAGE}"
+          docker run -d --restart always --name mindtracking-agent --network mindtrack-net -p 80:3000 \
+            -e OPENAI_API_KEY='${{ secrets.OPENAI_API_KEY }}' \
+            -e DB_HOST='${{ secrets.DB_HOST }}' \
+            -e DB_NAME='${{ secrets.DB_NAME }}' \
+            -e DB_USER='${{ secrets.DB_USER }}' \
+            -e DB_PASSWORD='${{ secrets.DB_PASSWORD }}' \
+            -e DB_PORT='${{ secrets.DB_PORT }}' \
+            "${IMAGE}"
