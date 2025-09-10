@@ -1,6 +1,8 @@
 import openai from "../config/IAconfig.js";
 import fs from "fs";
 import db from "../config/database.js";
+import fs from "fs";
+import path from "path";
 
 const bdPrompt = fs.readFileSync("RAG/markdownBD.md", "utf-8");
 const backPrompt = fs.readFileSync("RAG/markdownBack.md", "utf-8");
