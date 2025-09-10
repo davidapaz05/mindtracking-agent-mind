@@ -2,10 +2,12 @@ import openai from "../config/IAconfig.js";
 import fs from "fs";
 import db from "../config/database.js";
 import path from "path";
+import { fileURLToPath } from "url";
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-const bdPrompt = fs.readFileSync("RAG/markdownBD.md", "utf-8");
-const backPrompt = fs.readFileSync("RAG/markdownBack.md", "utf-8");
-const resumoPrompt = fs.readFileSync("RAG/resumoPrompt.md", "utf-8");
+const bdPrompt = fs.readFileSync(path.join(__dirname, '../Rag/markdownBD.md'), "utf-8");
+const backPrompt = fs.readFileSync(path.join(__dirname, '../Rag/markdownBack.md'), "utf-8");
+const resumoPrompt = fs.readFileSync(path.join(__dirname, '../Rag/markdownResumir.md'), "utf-8");
 
 let contexto = [];
 
