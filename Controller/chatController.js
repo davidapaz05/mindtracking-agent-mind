@@ -2,10 +2,10 @@ import openai from "../config/IAconfig.js";
 import fs from "fs";
 import db from "../config/database.js";
 
-const bdPrompt = fs.readFileSync("./RAG/markdownBD.md", "utf-8");
-const backPrompt = fs.readFileSync("./RAG/markdownBack.md", "utf-8");
-const frontWebPrompt = fs.readFileSync("./RAG/markdownFrontWeb.md", "utf-8");
-const resumoPrompt = fs.readFileSync("./RAG/markdownResumir.md", "utf-8");
+const bdPrompt = fs.readFileSync("./Rag/markdownBD.md", "utf-8");
+const backPrompt = fs.readFileSync("./Rag/markdownBack.md", "utf-8");
+const frontWebPrompt = fs.readFileSync("./Rag/markdownFrontWeb.md", "utf-8");
+const resumoPrompt = fs.readFileSync("./Rag/markdownResumir.md", "utf-8");
 
 let contexto = [];
 
