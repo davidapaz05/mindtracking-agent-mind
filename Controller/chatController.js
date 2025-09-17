@@ -1,13 +1,11 @@
 import openai from "../config/IAconfig.js";
 import fs from "fs";
 import db from "../config/database.js";
-import path from "path";
-import { fileURLToPath } from "url";
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-const bdPrompt = fs.readFileSync(path.join(__dirname, '../Rag/markdownBD.md'), "utf-8");
-const backPrompt = fs.readFileSync(path.join(__dirname, '../Rag/markdownBack.md'), "utf-8");
-const resumoPrompt = fs.readFileSync(path.join(__dirname, '../Rag/markdownResumir.md'), "utf-8");
+const bdPrompt = fs.readFileSync("./RAG/markdownBD.md", "utf-8");
+const backPrompt = fs.readFileSync("./RAG/markdownBack.md", "utf-8");
+const frontWebPrompt = fs.readFileSync("./RAG/markdownFrontWeb.md", "utf-8");
+const resumoPrompt = fs.readFileSync("./RAG/markdownResumir.md", "utf-8");
 
 let contexto = [];
 
@@ -40,9 +38,8 @@ export async function chat(message) {
       // Zera o contexto
       contexto = [];
 
-      return `Conversa encerrada. Resumo salvo no banco: ${JSON.stringify(resumo)}`;
+      return;
     }
-
     // Adiciona a mensagem do usuário ao contexto da conversa
     contexto.push({ role: "user", content: message });
 
@@ -58,47 +55,36 @@ export async function chat(message) {
     }
 
     // Envia a mensagem para a API IA com diretrizes + contexto semelhante
-    const respostaIA = await openai.chat.completions.create({
+  const respostaIA = await openai.chat.completions.create({
       messages: [
         {
           role: "system",
-          content: `Você é um assistente interno da equipe MindTracking,seu nome é Mind especializado em auxiliar desenvolvedores e QA’s no projeto da plataforma de acompanhamento psicológico. 
-          A plataforma utiliza questionários diários, diários escritos e interações com a Athena (IA de apoio psicológico) para gerar dados que o usuário pode exportar ou visualizar para melhorar sua saúde mental.  
-                                          
-          Suas responsabilidades:
-                        
-          **Limitações e Redirecionamento:**  
-          - Seu único papel é ser uma assistente para os desenvolvedores da equipe. Se perguntarem sobre outros temas, redirecione a conversa educadamente para o foco do suporte emocional.
-          - Você não deve mandar nada que não seja sobre assistência, resolução de problemas, orientações relacionadas ao projeto em nível técnico ou para criação de conteúdo relacionado ao projeto.
-          - Você não ensina nada que não seja a sua função ou que não seja relacionado a suas outras orientações, suas orientações se limitam a Desenvolvimento BackEnd, Banco de dados, Programação FrontEnd, Orientações sobre o projeto, testes de eficiência e ajudas para QA ou relacionadas.                    
-          - Se o usuário perguntar se você pode machucá-lo ou causar dano a ele ou a outras pessoas, responda de maneira criativa e reconfortante, deixando claro que sua missão é apoiar e promover o bem-estar.  
-          - Nunca forneça orientações sem fundamento ou sem sentido/vagas.  
-          - Se te pedirem para fazer algo que não seja relacionado ao seu objetivo não faça.
+          content: `Você é um assistente interno da equipe MindTracking, seu nome é Mind, especializado em auxiliar desenvolvedores e QA’s em dúvidas de programação, tecnologia, desenvolvimento de software e também no projeto da plataforma de acompanhamento psicológico MindTracking.
 
-          **O que você deve auxiliar o usuario:**
-                  1. Desenvolvimento Back-End e Banco de Dados
-                  - Auxiliar com dúvidas técnicas de back-end e banco de dados.
-                  - Explicar soluções de forma clara, concisa e técnica, sem respostas vagas.
-                  - Você terá acesso aos seguintes prompts de apoio:
-                    - Prompt de Banco de Dados: ${bdPrompt}
-                    - Prompt de Back-End: ${backPrompt}
-                  - Sempre quando te apresentado um erro de codigo utilize a base de dados para verificar onde pode estar o erro.
-                                          
-                  2. Testes Automatizados (QA)
-                  - Ajudar a equipe de QA a criar testes automatizados para as funcionalidades da plataforma.
-                  - Ensinar como forçar bugs, realizar testes brutos e gerar erros de forma controlada para fortalecer a aplicação.
-                                          
-                  3. Escopo de Resposta
-                  - Responder somente a perguntas relacionadas ao projeto MindTracking.
-                  - Se a pergunta for fora desse contexto, responda educadamente:
-                    "Posso ajudar apenas com dúvidas relacionadas ao desenvolvimento ou testes da plataforma MindTracking."`
+          **Comportamento:**
+          - Responda apenas perguntas sobre programação, tecnologia, desenvolvimento de software, frameworks, bancos de dados, testes, boas práticas, debug, arquitetura, integração, APIs, automação, etc., mesmo que não sejam diretamente relacionadas ao MindTracking.
+          - Não responda perguntas fora desse escopo. Se a pergunta não for sobre tecnologia, programação ou o projeto MindTracking, responda: "Posso ajudar apenas com dúvidas relacionadas a programação, tecnologia ou ao projeto MindTracking."
+          - Seja sempre objetivo e direto em mensagens comuns, evitando rodeios.
+          - Quando solicitado para explicar conceitos, resolver problemas técnicos ou gerar código, seja detalhista, explique passo a passo e forneça exemplos claros e completos.
+          - Se a dúvida for sobre o projeto MindTracking, utilize os prompts de apoio abaixo para fornecer contexto adicional:
+            - Prompt de Banco de Dados: ${bdPrompt}
+            - Prompt de Back-End: ${backPrompt}
+            - Prompt de Front-End Web: ${frontWebPrompt}
+          - Nunca forneça respostas vagas, sem fundamento ou que fujam do objetivo técnico.
+
+          **Exemplos de como agir:**
+          - Para perguntas técnicas, responda de forma clara, objetiva e, se necessário, detalhada.
+          - Para pedidos de código, explique o raciocínio e forneça o código comentado.
+          - Para dúvidas sobre o MindTracking, utilize os prompts de apoio e seja específico sobre o projeto.
+
+          Lembre-se: seu objetivo é ser útil, técnico, objetivo e detalhista quando necessário, sempre focado em programação e tecnologia. Não responda perguntas fora desse objetivo.`
         },
         ...contexto,
         { role: "system", content: contextoExtra }
       ],
-      model: "gpt-5",
+      model: "gpt-4o-mini",
       temperature: 0.7
-    });
+});
 
     const resposta = respostaIA.choices[0]?.message?.content?.trim();
 
@@ -129,18 +115,25 @@ async function resumirConversa(conversa) {
     ]
   });
 
-  const conteudo = respostaIA.choices[0]?.message?.content?.trim();
-  if (!conteudo) throw new Error("Resumo vazio");
+    let conteudo = respostaIA.choices[0]?.message?.content?.trim();
+    if (!conteudo) throw new Error("Resumo vazio");
 
-  let resultado;
-  try {
-    resultado = JSON.parse(conteudo);
-  } catch {
-    throw new Error("A IA não retornou JSON válido: " + conteudo);
-  }
+    // Remove blocos de código markdown, se existirem
+    if (conteudo.startsWith("```json")) {
+      conteudo = conteudo.replace(/^```json\s*([\s\S]*?)\s*```$/i, "$1").trim();
+    } else if (conteudo.startsWith("```")) {
+      conteudo = conteudo.replace(/^```\s*([\s\S]*?)\s*```$/i, "$1").trim();
+    }
+
+    let resultado;
+    try {
+      resultado = JSON.parse(conteudo);
+    } catch {
+      throw new Error("A IA não retornou JSON válido: " + conteudo);
+    }
 
   const [res] = await db.execute(
-    `INSERT INTO conversas_resumidas (resumo, tipo, status) VALUES (?, ?, ?)`,
+    `INSERT INTO conversas (resumo, tipo, status) VALUES (?, ?, ?)`,
     [resultado.resumo, resultado.tipo, resultado.status]
   );
 
@@ -182,13 +175,25 @@ async function buscarConversasSemelhantes(problema) {
 
   const [rows] = await db.execute(
     `SELECT c.id, c.resumo, c.tipo, c.status, v.embedding
-     FROM conversas_resumidas c
+     FROM conversas c
      JOIN conversas_vectores v ON c.id = v.conversa_id
      WHERE c.status = 'resolvido'`
   );
 
   const scored = rows.map(row => {
-    const emb = JSON.parse(row.embedding);
+    let emb;
+
+    try {
+      if (typeof row.embedding === "string") {
+        emb = JSON.parse(row.embedding); // se vier string JSON
+      } else {
+        emb = row.embedding; // se já for array (driver já converteu)
+      }
+    } catch (err) {
+      console.error("Erro ao processar embedding:", row.embedding, err);
+      emb = []; // fallback para não quebrar
+    }
+
     return {
       id: row.id,
       resumo: row.resumo,

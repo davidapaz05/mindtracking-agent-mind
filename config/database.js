@@ -11,6 +11,11 @@ const banco = await mysql.createConnection({
     host: process.env.DB_HOST, // Host do banco de dados (definido no .env)
     database: process.env.DB_NAME, // Nome do banco de dados (definido no .env)
     password: process.env.DB_PASSWORD, // Senha do banco de dados (definido no .env)
+    port: process.env.PORT,// Porta do banco de dados (definido no .env)
+    ssl: {
+        // Certificado SSL para conexões seguras
+        rejectUnauthorized: false,
+    }
 });
 
 banco.connect()
