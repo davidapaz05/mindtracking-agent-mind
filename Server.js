@@ -11,7 +11,7 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json());
 
 app.use(cors({
-  origin: ['http://localhost:3001', 'http://localhost:3000', 'https://interface-agente-mind.vercel.app'],
+  origin: ['http://localhost:3001', 'http://localhost:3000', '52.1.59.190'],
   credentials: true,
   methods: 'POST',
   allowedHeaders: ['Content-Type', 'Authorization']
